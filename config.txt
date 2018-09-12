@@ -1,0 +1,4 @@
+server = xxxxxxxxxx
+port = 1234
+nick = xxxxxx
+pass = xxxxx
