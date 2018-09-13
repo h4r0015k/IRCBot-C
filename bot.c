@@ -52,6 +52,9 @@ int main(int argc, char *argv[])
     }
 
     if(c < 0) {
+	if(sock >= 0)
+	    close(sock);
+
 	perror("Connect");
 	exit(EXIT_FAILURE);
     }
@@ -72,6 +75,7 @@ int main(int argc, char *argv[])
 	memset(data, '\0', sizeof(data));  
     }
 
+    close(sock);
     exit(EXIT_SUCCESS);
 }
 
@@ -115,14 +119,14 @@ void ident(char *nick, char *pass, int s)
     char nk[50];
     char p[80];
 
-    sprintf(user,"USER %s 0 0: %s\r\n", nick, nick);
+    snprintf(user, sizeof(user), "USER %s 0 0: %s\r\n", nick, nick);
     send(s, user, strlen(user), 0);
 
-    sprintf(nk,"NICK %s\r\n", nick);
+    snprintf(nk, sizeof(nk), "NICK %s\r\n", nick);
     send(s, nk, strlen(nk), 0);
 
     if(strlen(pass) > 0) {
-	sprintf(p,"identify %s %s\r\n", nick, pass);
+	snprintf(p, sizeof(p), "identify %s %s\r\n", nick, pass);
 	send_msg("NICKSERV", p, s);
     }
 }
@@ -161,7 +165,7 @@ void send_msg(char *nick, char *msg, int s)
 {
     char n_msg[500];
 
-    sprintf(n_msg,"PRIVMSG %s :%s\r\n", nick, msg);
+    snprintf(n_msg, sizeof(n_msg), "PRIVMSG %s :%s\r\n", nick, msg);
     send(s, n_msg, strlen(n_msg), 0);
 }
 
