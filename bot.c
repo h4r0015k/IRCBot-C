@@ -11,6 +11,7 @@ struct server_details {
     char port[10];
     char pass[30];
     char nick[30];
+    char channels[10][50];
 };
 
 struct server_details *load_config();
@@ -21,6 +22,8 @@ void process_priv_msg(char*, char*, int);
 void get_nick(char*, char*);
 void get_msg(char*, char*);
 void send_msg(char*, char*, int);
+void get_channels(char*, struct server_details*);
+void join_channels(char[10][50], int);
 
 int main(int argc, char *argv[])
 {
@@ -62,6 +65,8 @@ int main(int argc, char *argv[])
     freeaddrinfo(res);
 
     ident(ser->nick, ser->pass, sock);
+    join_channels(ser->channels, sock);
+
     free(ser);
 
     while(recv(sock, data, sizeof(data), 0) > 0) {
@@ -97,7 +102,7 @@ void pull_config(FILE *f, struct server_details *ser)
 {
     char data[50];
     char key[10];
-    char value[10];
+    char value[500];
 
     while(fgets(data, sizeof(data), f) != NULL) {
 	sscanf(data,"%s = %s",key,value);
@@ -110,6 +115,52 @@ void pull_config(FILE *f, struct server_details *ser)
 	    strcpy(ser->nick, value);
 	else if(!strcmp(key, "pass"))
 	    strcpy(ser->pass, value);
+	else if(!strcmp(key, "channels"))
+	    get_channels(value, ser);
+    }
+}
+
+void get_channels(char *value, struct server_details *ser)
+{
+
+    char tmp[50];
+    int n = 0, i = 0;
+    int len = strlen(value);
+
+    while(len) {
+	if(*value != ',') {
+	    tmp[n] = *value;
+	    ++n;
+	    ++value;
+	}
+	else if(*value == ' ') {
+	    ++n;
+	    ++value;
+	}
+	else {
+	    strcpy(ser->channels[i], tmp);
+	    ++i;
+	    ++value;
+	    memset(tmp, '\0', sizeof(tmp));
+	    n = 0;
+	}
+	--len;
+    }
+
+    if(strlen(tmp) > 0)
+	strcpy(ser->channels[i], tmp);
+
+}
+
+void join_channels(char channels[10][50], int s) 
+{
+    char data[50];
+    int i;
+ 	
+    for(i = 0; strlen(channels[i]) > 0 ; i++) {
+	snprintf(data, sizeof(data), "JOIN %s\r\n", channels[i]);
+	send(s, data, strlen(data), 0);
+	
     }
 }
 
