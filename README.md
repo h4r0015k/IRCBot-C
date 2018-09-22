@@ -3,6 +3,7 @@ An IRC bot in C.
 
 ## Features
 - Logs in.
+- Join channels.
 - Send pongs.
 - Echoes back privmsg.
 
